@@ -18,6 +18,12 @@ const {
   setupPlayerTurn,
   setSetupPlayerTurn,
 } = useGame();
+const isPieceVisible = (piece) => {
+  if (piece.owner === currentPlayer) return true;
+  if (piece.isRevealed) return true; // ถ้ามีสถานะเปิดเผย
+  return false;
+};
+
 
 const resetGame = () => {
   setPieces(initialPieces);
@@ -113,19 +119,30 @@ const resetGame = () => {
           }
         }
       }
-    } else if (role === "rock") {
-      // เดินแบบเบี้ย เดินหน้า 1 ช่อง
-      let nx = position.x;
-      let ny = owner === "self" ? position.y - 1 : position.y + 1;
-      if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-        const target = pieces.find(
-          (p) => p.position.x === nx && p.position.y === ny
-        );
-        if (!target || target.owner !== owner) {
-          moves.push({ x: nx, y: ny });
-        }
+  } else if (role === "rock") {
+  // เดินได้ 4 ทิศทางละ 1 ช่อง
+  const directions = [
+    [1, 0],   // ขวา
+    [-1, 0],  // ซ้าย
+    [0, 1],   // ลง
+    [0, -1],  // ขึ้น
+  ];
+
+  for (const [dx, dy] of directions) {
+    const nx = position.x + dx;
+    const ny = position.y + dy;
+
+    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+      const target = pieces.find(
+        (p) => p.position.x === nx && p.position.y === ny
+      );
+      if (!target || target.owner !== owner) {
+        moves.push({ x: nx, y: ny });
       }
     }
+  }
+}
+
 
     return moves;
   };
@@ -202,16 +219,18 @@ const resetGame = () => {
   };
 
   // ฟังก์ชันสร้างไอคอน piece
-  const renderPieceIcon = (piece) => {
-    if (piece.owner === "opponent" && !piece.isRevealed) {
-      return <div className="piece-icon unknown">?</div>;
-    }
-    
-    return (
-      <div className={`piece-icon role-${piece.role} owner-${piece.owner}`}>
-      </div>
-    );
-  };
+ const renderPieceIcon = (piece) => {
+  if (!isPieceVisible(piece)) {
+    return <div className="piece-icon unknown">?</div>;
+  }
+  
+  return (
+    <div className={`piece-icon role-${piece.role} owner-${piece.owner}`}>
+      {/* ... icon หรือรูป */}
+    </div>
+  );
+};
+
 
   return (
     <div className="gameboard-container">
@@ -243,7 +262,8 @@ const resetGame = () => {
               <div
                 key={`${x}-${y}`}
                 className={`board-cell
-                  ${piece ? (piece.owner === "self" ? "self" : "opponent") : ""}
+                  ${piece && renderPieceIcon(piece)}
+                  
                   ${isSelected ? "selected" : ""}
                   ${canMoveHere ? "can-move" : ""}
                   ${isPointer ? "pointer" : ""}

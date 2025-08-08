@@ -111,10 +111,16 @@ export default function SetupBoard() {
                     }
                   }}
                 >
-                  {occupiedPiece && (
-                    <div className={`piece-icon role-${occupiedPiece.role.toLowerCase()}`}></div>
+                 {occupiedPiece && (
+  setupPlayerTurn === occupiedPiece.owner ? (
+    // แสดงหมากเต็ม
+    <div className={`piece-icon role-${occupiedPiece.role.toLowerCase()}`}></div>
+  ) : (
+    // แสดงหมากปิด (อาจเป็นเครื่องหมาย ? หรือกล่องสีเทา)
+    <div className="piece-icon unknown">?</div>
+  )
+)}
 
-                  )}
                 </div>
               );
             })
