@@ -1,7 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
+module.exports = (env, argv) => ({
   entry: './src/index.jsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -20,7 +20,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'], // import './style.css'
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
@@ -29,10 +29,5 @@ module.exports = {
       template: './public/index.html',
     }),
   ],
-  devServer: {
-    port: 3000,
-    open: true,
-    hot: true,
-  },
-  mode: 'development',
-};
+  mode: argv.mode || 'development', // 👈 รับจาก argv
+});
