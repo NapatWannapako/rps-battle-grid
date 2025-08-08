@@ -1,0 +1,65 @@
+/* src/components/GameBoard/GameBoard.css */
+
+.gameboard-container {
+  max-width: 320px;
+  margin: 10px auto;
+  user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.current-player {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #1976d2;
+  text-align: center;
+}
+
+.board-grid {
+  display: grid;
+  grid-gap: 4px;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  background-color: #ddd;
+  padding: 4px;
+}
+
+.board-cell {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #555;
+  user-select: none;
+}
+
+.board-cell.pointer {
+  cursor: pointer;
+}
+
+.board-cell.self {
+  color: #1565c0; /* สีน้ำเงิน */
+}
+
+.board-cell.opponent {
+  color: #c62828; /* สีแดงเข้ม */
+}
+
+.board-cell.selected {
+  background-color: #a7ffeb;
+  box-shadow: 0 0 10px 2px #00bfa5;
+}
+
+.board-cell:hover.pointer {
+  background-color: #bbdefb;
+  box-shadow: 0 0 8px 2px #1976d2;
+  border-color: #1976d2;
+}

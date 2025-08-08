@@ -1,0 +1,95 @@
+/* SetupBoard.css */
+
+/* Container รอบๆ ทั้งหมดให้กึ่งกลางจอ */
+:root {
+  --cell-size: 50px;
+}
+
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.setupboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* แนวตั้งกึ่งกลาง */
+  align-items: center;      /* แนวนอนกึ่งกลาง */
+  height: 100vh;            /* เต็มความสูงหน้าจอ */
+  padding: 20px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.grid {
+  display: grid;
+  gap: 4px;
+  /* กำหนด columns และ rows เป็น inline style ตามจำนวน BOARD_SIZE */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background-color: #ddd;
+  padding: 6px;
+  user-select: none;
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+.cell:hover {
+  box-shadow: 0 0 8px 3px #64b5f6;
+  border-color: #42a5f5;
+}
+
+.cell-self-row {
+  background-color: #e0f7fa;
+}
+
+.cell-opponent-row {
+  background-color: #ffe0f0;
+}
+
+.cell-default {
+  background-color: #f5f5f5;
+}
+
+.piece-text {
+  color: #1565c0;
+  font-weight: bold;
+  font-size: 1.3rem;
+  user-select: none;
+}
+
+.button-next {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(25, 118, 210, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+.button-next:hover {
+  background-color: #1565c0;
+}
