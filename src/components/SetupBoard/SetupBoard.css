@@ -1,24 +1,38 @@
-/* SetupBoard.css */
-
-/* Container รอบๆ ทั้งหมดให้กึ่งกลางจอ */
 :root {
   --cell-size: 50px;
+  --primary-color: #8b4513;
+  --primary-hover: #8b4513;
+  --text-dark: #333;
+  --text-light: #fff;
+  --bg-light: #fafafa;
+  --bg-default-cell: #deb887; /* เปลี่ยนจาก f5f5f5 เป็น deb887 ตามตัวอย่าง */
+  --bg-player1: #e3f2fd;
+  --bg-player2: #fce4ec;
+  --border-color: #8b4513; /* ใช้สีเดียวกับ border ของ cell */
+  --grid-shadow: rgba(0, 0, 0, 0.2);
+  --hover-glow: #64b5f6;
+  --success-color: #4CAF50;
+  --success-hover: #2E7D32;
+  --warning-color: #FFE082;
+  --warning-hover: #FFA000;
 }
 
-body, html, #root {
+body,
+html,
+#root {
   height: 100%;
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-light);
 }
 
 .setupboard-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: center;  /* แนวตั้งกึ่งกลาง */
-  align-items: center;      /* แนวนอนกึ่งกลาง */
-  height: 100vh;            /* เต็มความสูงหน้าจอ */
-  padding: 20px;
-  background: #fafafa;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
@@ -26,70 +40,200 @@ p {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 16px;
-  color: #333;
+  color: var(--text-dark);
 }
 
+/* เปลี่ยนชื่อ .grid เป็น .board-grid หรือใช้ .grid ก็ได้ แต่ style ตามนี้ */
 .grid {
   display: grid;
-  gap: 4px;
-  /* กำหนด columns และ rows เป็น inline style ตามจำนวน BOARD_SIZE */
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  background-color: #ddd;
-  padding: 6px;
-  user-select: none;
+  gap: 2px;
+  background-color: var(--primary-color); /* #8b4513 */
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--grid-shadow);
+  grid-template-columns: repeat(6, var(--cell-size));
+  grid-template-rows: repeat(6, var(--cell-size));
 }
 
+/* เปลี่ยนชื่อ .cell เป็น .board-cell หรือใช้ .cell แต่ style นี้ */
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  border-radius: 8px;
-  border: 1px solid #bbb;
+  background-color: var(--bg-default-cell); /* #deb887 */
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  position: relative;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: default;
 }
 
 .cell:hover {
-  box-shadow: 0 0 8px 3px #64b5f6;
-  border-color: #42a5f5;
+  background-color: #f5deb3;
 }
 
+/* สีพื้นของแถวผู้เล่น */
 .cell-self-row {
-  background-color: #e0f7fa;
+  background-color: var(--bg-player1); /* #e3f2fd */
 }
 
 .cell-opponent-row {
-  background-color: #ffe0f0;
+  background-color: var(--bg-player2); /* #fce4ec */
 }
 
-.cell-default {
-  background-color: #f5f5f5;
+/* เพิ่มคลาสสำหรับสถานะเลือก */
+.cell.selected {
+  background-color: var(--success-color);
+  border: 2px solid var(--success-hover);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
+/* ช่องที่สามารถเดินได้ */
+.cell.can-move {
+  background-color: var(--warning-color);
+  border: 2px solid var(--warning-hover);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cell.can-move:hover {
+  background-color: #FFCC02;
+  transform: scale(1.05);
+}
+
+/* เปลี่ยน cursor เป็น pointer */
+.cell.pointer {
+  cursor: pointer;
+}
+
+/* กำหนดสไตล์ตัวอักษรบนหมาก */
 .piece-text {
-  color: #1565c0;
+  color: var(--primary-hover);
   font-weight: bold;
   font-size: 1.3rem;
   user-select: none;
 }
 
+
 .button-next {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #1976d2;
+  margin-top: 16px;
+  padding: 10px 24px;
+  background-color: var(--primary-color);
   border: none;
-  border-radius: 6px;
-  color: white;
-  font-weight: 700;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(25, 118, 210, 0.5);
-  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .button-next:hover {
-  background-color: #1565c0;
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.unplaced-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.piece-select-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid transparent;
+  background-color: #f1f3f5;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.piece-select-button:hover {
+  transform: scale(1.05);
+}
+
+.piece-select-button.selected {
+  border-color: var(--primary-color);
+  background-color: var(--bg-player1);
+  box-shadow: 0 0 10px rgba(25, 118, 210, 0.3);
+}
+
+/* Piece Icon Styles - Same as GameBoard */
+.piece-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  pointer-events: none;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.piece-icon:hover {
+  transform: scale(1.05);
+}
+
+/* Role-based styling using emoji icons */
+.piece-icon.role-rock {
+  background-color: #d32f2f;
+}
+.piece-icon.role-rock::before {
+  content: "🪨";
+}
+
+.piece-icon.role-paper {
+  background-color: var(--primary-color);
+}
+.piece-icon.role-paper::before {
+  content: "📄";
+}
+
+.piece-icon.role-scissors {
+  background-color: #fbc02d;
+}
+.piece-icon.role-scissors::before {
+  content: "✂️";
+}
+
+/* Player-specific styling */
+.piece-icon.owner-self {
+  border: 2px solid rgba(76, 175, 80, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.piece-icon.owner-opponent {
+  border: 2px solid rgba(244, 67, 54, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(244, 67, 54, 0.3);
+}
+
+/* Additional styles for setup phase interactions */
+.cell.can-place {
+  background-color: var(--warning-color);
+  border: 2px solid var(--warning-hover);
+  cursor: pointer;
+}
+
+.cell.can-place:hover {
+  background-color: #FFCC02;
+  transform: translateY(-1px);
+}
+
+.cell.selected {
+  background-color: var(--success-color);
+  border: 2px solid var(--success-hover);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }

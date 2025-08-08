@@ -8,7 +8,7 @@ import Game from '../pages/Game/Game.jsx';
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Game />} />
       <Route path="/game" element={<Game />} />
       <Route path="/about" element={<About />} />
       <Route path="*" element={<NotFound />} />

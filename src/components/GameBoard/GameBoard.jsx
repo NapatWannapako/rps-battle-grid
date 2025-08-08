@@ -28,9 +28,6 @@ const resetGame = () => {
   setWinner(null);
 };
 
-
-
-
   const [winner, setWinner] = React.useState(null);
 
   // เก็บช่อง valid moves ที่ piece ที่เลือกเดินไปได้
@@ -204,6 +201,18 @@ const resetGame = () => {
     // setCurrentPlayer(currentPlayer === 'self' ? 'opponent' : 'self');
   };
 
+  // ฟังก์ชันสร้างไอคอน piece
+  const renderPieceIcon = (piece) => {
+    if (piece.owner === "opponent" && !piece.isRevealed) {
+      return <div className="piece-icon unknown">?</div>;
+    }
+    
+    return (
+      <div className={`piece-icon role-${piece.role} owner-${piece.owner}`}>
+      </div>
+    );
+  };
+
   return (
     <div className="gameboard-container">
       <p className="current-player">
@@ -247,11 +256,7 @@ const resetGame = () => {
                   }
                 }}
               >
-                {piece
-                  ? piece.owner === "self" || piece.isRevealed
-                    ? piece.role[0].toUpperCase()
-                    : "❓"
-                  : null}
+                {piece && renderPieceIcon(piece)}
               </div>
             );
           })
