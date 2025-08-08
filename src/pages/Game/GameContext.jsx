@@ -11,14 +11,15 @@ export function useGame() {
   return context;
 }
 
-export function GameProvider({ children }) {
-  const initialPieces = [];
+export const initialPieces = [];
 
-  for (let i = 0; i < 6; i++) {
-    const role = ROLES[Math.floor(i / 2)];
-    initialPieces.push(createPiece(`self_${i}`, role, PLAYER_SELF));
-    initialPieces.push(createPiece(`opponent_${i}`, role, PLAYER_OPPONENT));
-  }
+for (let i = 0; i < 6; i++) {
+  const role = ROLES[Math.floor(i / 2)];
+  initialPieces.push(createPiece(`self_${i}`, role, PLAYER_SELF));
+  initialPieces.push(createPiece(`opponent_${i}`, role, PLAYER_OPPONENT));
+}
+export function GameProvider({ children }) {
+  
 
   const [pieces, setPieces] = useState(initialPieces);
   const [currentPlayer, setCurrentPlayer] = useState(PLAYER_SELF);

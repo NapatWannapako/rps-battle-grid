@@ -1,47 +1,48 @@
-import React from 'react';
-import { useGame } from '../../pages/Game/GameContext';
-import { resolveBattle } from '../../features/game/gameLogic';
-import './GameBoard.css';
+import React, { useState, useEffect } from "react";
+import { useGame,initialPieces  } from "../../pages/Game/GameContext";
+import { resolveBattle } from "../../features/game/gameLogic";
+import "./GameBoard.css";
+import { PLAYER_SELF, PLAYER_OPPONENT } from "../../models/gameModel";
 
 export default function GameBoard() {
-  const {
-    pieces,
-    setPieces,
-    BOARD_SIZE,
-    currentPlayer,
-    setCurrentPlayer,
-    selectedPiece,
-    setSelectedPiece,
-  } = useGame();
+const {
+  pieces,
+  setPieces,
+  BOARD_SIZE,
+  currentPlayer,
+  setCurrentPlayer,
+  selectedPiece,
+  setSelectedPiece,
+  phase,
+  setPhase,
+  setupPlayerTurn,
+  setSetupPlayerTurn,
+} = useGame();
 
-  const onSelectPiece = (piece) => {
-    if (piece.owner !== currentPlayer) return;
-    setSelectedPiece(piece);
-  };
-const onMove = (x, y) => {
-  if (!selectedPiece) return;
+const resetGame = () => {
+  setPieces(initialPieces);
+  setSelectedPiece(null);
+  setCurrentPlayer(PLAYER_SELF);
+  setPhase('setup');
+  setSetupPlayerTurn(PLAYER_SELF);
+  setWinner(null);
+};
 
-  const { position, role, owner } = selectedPiece;
-  const dx = x - position.x;
-  const dy = y - position.y;
-  const absDx = Math.abs(dx);
-  const absDy = Math.abs(dy);
 
-  // ห้ามเดินออกนอกบอร์ด
-  if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
 
-  // ตรวจเป้าหมาย
-  const target = pieces.find(p => p.position.x === x && p.position.y === y);
 
-  // ห้ามเดินทับตัวเอง
-  if (target && target.owner === owner) return;
+  const [winner, setWinner] = React.useState(null);
+
+  // เก็บช่อง valid moves ที่ piece ที่เลือกเดินไปได้
+  const [validMoves, setValidMoves] = useState([]);
 
   // ฟังก์ชันช่วยเช็คว่ามีหมากขวางไหมในแนวตรง
   function isPathClearHorizontal(y, x1, x2) {
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
     for (let cx = minX + 1; cx < maxX; cx++) {
-      if (pieces.some(p => p.position.x === cx && p.position.y === y)) return false;
+      if (pieces.some((p) => p.position.x === cx && p.position.y === y))
+        return false;
     }
     return true;
   }
@@ -49,102 +50,164 @@ const onMove = (x, y) => {
     const minY = Math.min(y1, y2);
     const maxY = Math.max(y1, y2);
     for (let cy = minY + 1; cy < maxY; cy++) {
-      if (pieces.some(p => p.position.x === x && p.position.y === cy)) return false;
+      if (pieces.some((p) => p.position.x === x && p.position.y === cy))
+        return false;
     }
     return true;
   }
 
-  // กติกาการเดินตาม role
-  let validMove = false;
+  // ฟังก์ชันหา valid moves ของ selectedPiece
+  const getValidMoves = (piece) => {
+    if (!piece) return [];
+    const moves = [];
+    const { position, role, owner } = piece;
+    const directions = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]; // 4 ทิศ
 
-  if (role === 'paper') {
-    // เดินแบบเรือ: เดินแนวตั้งหรือแนวนอนหลายช่อง
-    if (dx === 0 && dy !== 0) {
-      validMove = isPathClearVertical(position.x, position.y, y);
-    } else if (dy === 0 && dx !== 0) {
-      validMove = isPathClearHorizontal(position.y, position.x, x);
-    }
-  } else if (role === 'scissors') {
-    // เดินแบบม้า (knight): L-shape 2+1
-    if (
-      (absDx === 2 && absDy === 1) ||
-      (absDx === 1 && absDy === 2)
-    ) {
-      validMove = true;
-    }
-  } else if (role === 'rock') {
-    // เดินแบบเบี้ย: เดิน 1 ช่องตรงไปข้างหน้า (ฝั่ง self เดินขึ้น - ฝั่ง opponent เดินลง)
-    if (dx === 0) {
-      if (owner === 'self' && dy === -1) {
-        validMove = true;
-      } else if (owner === 'opponent' && dy === 1) {
-        validMove = true;
+    if (role === "paper") {
+      // เดินแบบเรือ (เดินตรงตามแถวหรือคอลัมน์หลายช่อง)
+      // ลองเดินไปในแต่ละทิศทางจนเจอหมากหรือขอบบอร์ด
+      for (const [dx, dy] of directions) {
+        let nx = position.x + dx;
+        let ny = position.y + dy;
+        while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+          // ถ้ามีหมากขวาง, หยุด
+          if (pieces.some((p) => p.position.x === nx && p.position.y === ny))
+            break;
+          moves.push({ x: nx, y: ny });
+          nx += dx;
+          ny += dy;
+        }
+        // ถ้ามีหมากตรงปลายทางที่เป็นคู่ต่อสู้ ก็เดินไปโจมตีได้
+        const lastX = nx;
+        const lastY = ny;
+        const target = pieces.find(
+          (p) => p.position.x === lastX && p.position.y === lastY
+        );
+        if (target && target.owner !== owner) {
+          moves.push({ x: lastX, y: lastY });
+        }
+      }
+    } else if (role === "scissors") {
+      // เดินแบบม้า (knight move)
+      const knightMoves = [
+        [2, 1],
+        [2, -1],
+        [-2, 1],
+        [-2, -1],
+        [1, 2],
+        [1, -2],
+        [-1, 2],
+        [-1, -2],
+      ];
+      for (const [dx, dy] of knightMoves) {
+        const nx = position.x + dx;
+        const ny = position.y + dy;
+        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+          const target = pieces.find(
+            (p) => p.position.x === nx && p.position.y === ny
+          );
+          if (!target || target.owner !== owner) {
+            moves.push({ x: nx, y: ny });
+          }
+        }
+      }
+    } else if (role === "rock") {
+      // เดินแบบเบี้ย เดินหน้า 1 ช่อง
+      let nx = position.x;
+      let ny = owner === "self" ? position.y - 1 : position.y + 1;
+      if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+        const target = pieces.find(
+          (p) => p.position.x === nx && p.position.y === ny
+        );
+        if (!target || target.owner !== owner) {
+          moves.push({ x: nx, y: ny });
+        }
       }
     }
-  }
 
-  if (!validMove) return;
+    return moves;
+  };
 
-  // เริ่ม move / battle logic เหมือนเดิม
-  let newPieces = pieces.filter(p => p.id !== selectedPiece.id);
-  if (target && target.owner !== owner) {
-    const winner = resolveBattle(role, target.role);
-    if (winner === 'attacker') {
-      newPieces = newPieces.filter(p => p.id !== target.id);
-      newPieces.push({ ...selectedPiece, position: { x, y }, isRevealed: true });
-    } else if (winner === 'defender') {
-      // attacker หายไป ไม่ต้องเพิ่ม
-    } else {
-      // draw: ลบทั้งคู่
-      newPieces = newPieces.filter(p => p.id !== target.id);
+  // อัพเดต validMoves ทุกครั้งที่ selectedPiece หรือ pieces เปลี่ยน
+  useEffect(() => {
+    setValidMoves(getValidMoves(selectedPiece));
+  }, [selectedPiece, pieces]);
+
+  const onSelectPiece = (piece) => {
+    if (piece.owner !== currentPlayer) return;
+    setSelectedPiece(piece);
+  };
+  const checkWinner = (pieces) => {
+    const selfPieces = pieces.filter((p) => p.owner === "self");
+    const opponentPieces = pieces.filter((p) => p.owner === "opponent");
+
+    if (selfPieces.length === 0 && opponentPieces.length === 0) {
+      return "draw"; // เสมอ
+    } else if (selfPieces.length === 0) {
+      return "opponent"; // ฝ่ายตรงข้ามชนะ
+    } else if (opponentPieces.length === 0) {
+      return "self"; // ผู้เล่นชนะ
     }
-  } else {
-    newPieces.push({ ...selectedPiece, position: { x, y } });
-  }
+    return null; // ยังไม่มีใครชนะ
+  };
 
-  setPieces(newPieces);
-  setSelectedPiece(null);
-  setCurrentPlayer(currentPlayer === 'self' ? 'opponent' : 'self');
-};
+  const onMove = (x, y) => {
+    if (!selectedPiece) return;
 
-//   const onMove = (x, y) => {
-//     if (!selectedPiece) return;
+    const { position, role, owner } = selectedPiece;
+    const dx = x - position.x;
+    const dy = y - position.y;
 
-//     const dx = Math.abs(selectedPiece.position.x - x);
-//     const dy = Math.abs(selectedPiece.position.y - y);
-//     if (dx + dy !== 1) return; // เดินแค่ช่องติดกัน
+    // เช็คว่า (x,y) อยู่ใน validMoves
+    if (!validMoves.some((m) => m.x === x && m.y === y)) return;
 
-//     const target = pieces.find(p => p.position.x === x && p.position.y === y);
+    const target = pieces.find((p) => p.position.x === x && p.position.y === y);
 
-//     if (target && target.owner === currentPlayer) return; // ห้ามเดินทับตัวเอง
+    // ห้ามเดินทับตัวเอง
+    if (target && target.owner === owner) return;
 
-//     let newPieces = pieces.filter(p => p.id !== selectedPiece.id);
-//     let battleResolved = false;
+    let newPieces = pieces.filter((p) => p.id !== selectedPiece.id);
+    if (target && target.owner !== owner) {
+      const winner = resolveBattle(role, target.role);
+      if (winner === "attacker") {
+        newPieces = newPieces.filter((p) => p.id !== target.id);
+        newPieces.push({
+          ...selectedPiece,
+          position: { x, y },
+          isRevealed: true,
+        });
+      } else if (winner === "defender") {
+        // attacker หายไป ไม่ต้องเพิ่ม
+      } else {
+        // draw: ลบทั้งคู่
+        newPieces = newPieces.filter((p) => p.id !== target.id);
+      }
+    } else {
+      newPieces.push({ ...selectedPiece, position: { x, y } });
+    }
 
-//     if (target && target.owner !== currentPlayer) {
-//       battleResolved = true;
-//       const winner = resolveBattle(selectedPiece.role, target.role);
-//       if (winner === 'attacker') {
-//         newPieces = newPieces.filter(p => p.id !== target.id);
-//         newPieces.push({ ...selectedPiece, position: { x, y }, isRevealed: true });
-//       } else if (winner === 'defender') {
-//         // attacker หายไป ไม่ต้องทำอะไร
-//       } else {
-//         newPieces = newPieces.filter(p => p.id !== target.id);
-//       }
-//     } else {
-//       newPieces.push({ ...selectedPiece, position: { x, y } });
-//     }
+    setPieces(newPieces);
+    setSelectedPiece(null);
+    const gameWinner = checkWinner(newPieces);
+    if (gameWinner) {
+      setWinner(gameWinner);
+    } else {
+      setCurrentPlayer(currentPlayer === "self" ? "opponent" : "self");
+    }
 
-//     setPieces(newPieces);
-//     setSelectedPiece(null);
-//     setCurrentPlayer(currentPlayer === 'self' ? 'opponent' : 'self');
-//   };
+    // setSelectedPiece(null);
+    // setCurrentPlayer(currentPlayer === 'self' ? 'opponent' : 'self');
+  };
 
   return (
     <div className="gameboard-container">
       <p className="current-player">
-        ผู้เล่น: {currentPlayer === 'self' ? 'คุณ' : 'ฝ่ายตรงข้าม'}
+        ผู้เล่น: {currentPlayer === "self" ? "คุณ" : "ฝ่ายตรงข้าม"}
       </p>
       <div
         className="board-grid"
@@ -155,11 +218,14 @@ const onMove = (x, y) => {
       >
         {[...Array(BOARD_SIZE)].map((_, y) =>
           [...Array(BOARD_SIZE)].map((_, x) => {
-            const piece = pieces.find(p => p.position.x === x && p.position.y === y);
+            const piece = pieces.find(
+              (p) => p.position.x === x && p.position.y === y
+            );
             const isSelected =
               selectedPiece &&
               selectedPiece.position.x === x &&
               selectedPiece.position.y === y;
+            const canMoveHere = validMoves.some((m) => m.x === x && m.y === y);
             const isPointer =
               (piece && piece.owner === currentPlayer) ||
               (!piece && selectedPiece);
@@ -168,9 +234,10 @@ const onMove = (x, y) => {
               <div
                 key={`${x}-${y}`}
                 className={`board-cell
-                  ${piece ? (piece.owner === 'self' ? 'self' : 'opponent') : ''}
-                  ${isSelected ? 'selected' : ''}
-                  ${isPointer ? 'pointer' : ''}
+                  ${piece ? (piece.owner === "self" ? "self" : "opponent") : ""}
+                  ${isSelected ? "selected" : ""}
+                  ${canMoveHere ? "can-move" : ""}
+                  ${isPointer ? "pointer" : ""}
                 `}
                 onClick={() => {
                   if (piece && piece.owner === currentPlayer) {
@@ -181,15 +248,30 @@ const onMove = (x, y) => {
                 }}
               >
                 {piece
-                  ? piece.owner === 'self' || piece.isRevealed
+                  ? piece.owner === "self" || piece.isRevealed
                     ? piece.role[0].toUpperCase()
-                    : '❓'
+                    : "❓"
                   : null}
               </div>
             );
           })
         )}
       </div>
+      {winner && (
+  <div className="game-winner-dialog">
+    <div className="dialog-content">
+      <h2>
+        {winner === "draw"
+          ? "เกมเสมอ!"
+          : winner === "self"
+          ? "คุณชนะ!"
+          : "ฝ่ายตรงข้ามชนะ!"}
+      </h2>
+      <button onClick={resetGame}>เริ่มเกมใหม่</button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
