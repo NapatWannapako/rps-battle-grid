@@ -19,7 +19,7 @@ for (let i = 0; i < 6; i++) {
   initialPieces.push(createPiece(`opponent_${i}`, role, PLAYER_OPPONENT));
 }
 export function GameProvider({ children }) {
-  
+
 
   const [pieces, setPieces] = useState(initialPieces);
   const [currentPlayer, setCurrentPlayer] = useState(PLAYER_SELF);

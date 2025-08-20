@@ -64,16 +64,17 @@
 
 /* Piece Icon Styles */
 .piece-icon {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 26px;
+  /* ใหญ่ขึ้น เห็นชัด */
   font-weight: bold;
-  color: white;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
   user-select: none;
   pointer-events: none;
   position: relative;
@@ -86,119 +87,49 @@
 
 /* Unknown/Hidden piece */
 .piece-icon.unknown {
-  background: linear-gradient(135deg, #666, #333);
-  color: #fff;
-  font-size: 20px;
+  background: #555;
+  font-size: 24px;
   font-weight: bold;
 }
 
 /* Rock styles */
 .piece-icon.role-rock {
-  background: linear-gradient(135deg, #d32f2f, #b71c1c);
-  border: 2px solid #8b0000;
+  background-color: #e53935;
 }
 
 .piece-icon.role-rock::before {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: radial-gradient(circle at 30% 30%, #ff6b6b, #d32f2f);
-  border-radius: 50%;
-  top: 6px;
-  left: 8px;
-  box-shadow: 
-    4px 4px 0 #a52525,
-    8px 8px 0 #8b0000;
+  content: "🪨";
 }
 
-.piece-icon.role-rock::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #ff8a80;
-  border-radius: 50%;
-  top: 8px;
-  left: 10px;
-  opacity: 0.7;
-}
 
 /* Paper styles */
 .piece-icon.role-paper {
-  background: linear-gradient(135deg, #1976d2, #0d47a1);
-  border: 2px solid #003d82;
+  background-color: #1e88e5;
 }
 
 .piece-icon.role-paper::before {
-  content: "";
-  position: absolute;
-  width: 22px;
-  height: 26px;
-  background: linear-gradient(135deg, #64b5f6, #1976d2);
-  border-radius: 2px;
-  top: 5px;
-  left: 7px;
-  box-shadow: 
-    2px 2px 0 #0d47a1,
-    inset 0 2px 0 rgba(255,255,255,0.3);
+  content: "📄";
 }
 
-.piece-icon.role-paper::after {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 2px;
-  background: rgba(255,255,255,0.8);
-  top: 10px;
-  left: 10px;
-  border-radius: 1px;
-  box-shadow: 
-    0 4px 0 rgba(255,255,255,0.6),
-    0 8px 0 rgba(255,255,255,0.4);
-}
 
 /* Scissors styles */
 .piece-icon.role-scissors {
-  background: linear-gradient(135deg, #fbc02d, #f57f17);
-  border: 2px solid #e65100;
+  background-color: #fdd835;
 }
 
 .piece-icon.role-scissors::before {
-  content: "";
-  position: absolute;
-  width: 3px;
-  height: 20px;
-  background: linear-gradient(to bottom, #fff, #fbc02d);
-  top: 8px;
-  left: 16px;
-  border-radius: 1px;
-  transform: rotate(-15deg);
-  box-shadow: 2px 0 0 #e65100;
-}
-
-.piece-icon.role-scissors::after {
-  content: "";
-  position: absolute;
-  width: 3px;
-  height: 20px;
-  background: linear-gradient(to bottom, #fff, #fbc02d);
-  top: 8px;
-  right: 16px;
-  border-radius: 1px;
-  transform: rotate(15deg);
-  box-shadow: -2px 0 0 #e65100;
+  content: "✂️";
 }
 
 /* Player-specific styling */
 .piece-icon.owner-self {
-  border: 2px solid rgba(76, 175, 80, 0.6);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(76, 175, 80, 0.3);
+  border: 3px solid rgba(76, 175, 80, 0.9);
+  /* เขียวขอบชัด */
 }
 
 .piece-icon.owner-opponent {
-  border: 2px solid rgba(244, 67, 54, 0.6);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(244, 67, 54, 0.3);
+  border: 3px solid rgba(244, 67, 54, 0.9);
+  /* แดงขอบชัด */
 }
 
 /* Game winner dialog */

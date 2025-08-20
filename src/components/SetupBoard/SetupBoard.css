@@ -5,10 +5,12 @@
   --text-dark: #333;
   --text-light: #fff;
   --bg-light: #fafafa;
-  --bg-default-cell: #deb887; /* เปลี่ยนจาก f5f5f5 เป็น deb887 ตามตัวอย่าง */
+  --bg-default-cell: #deb887;
+  /* เปลี่ยนจาก f5f5f5 เป็น deb887 ตามตัวอย่าง */
   --bg-player1: #e3f2fd;
   --bg-player2: #fce4ec;
-  --border-color: #8b4513; /* ใช้สีเดียวกับ border ของ cell */
+  --border-color: #8b4513;
+  /* ใช้สีเดียวกับ border ของ cell */
   --grid-shadow: rgba(0, 0, 0, 0.2);
   --hover-glow: #64b5f6;
   --success-color: #4CAF50;
@@ -47,7 +49,8 @@ p {
 .grid {
   display: grid;
   gap: 2px;
-  background-color: var(--primary-color); /* #8b4513 */
+  background-color: var(--primary-color);
+  /* #8b4513 */
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--grid-shadow);
@@ -59,7 +62,8 @@ p {
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  background-color: var(--bg-default-cell); /* #deb887 */
+  background-color: var(--bg-default-cell);
+  /* #deb887 */
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -76,11 +80,13 @@ p {
 
 /* สีพื้นของแถวผู้เล่น */
 .cell-self-row {
-  background-color: var(--bg-player1); /* #e3f2fd */
+  background-color: var(--bg-player1);
+  /* #e3f2fd */
 }
 
 .cell-opponent-row {
-  background-color: var(--bg-player2); /* #fce4ec */
+  background-color: var(--bg-player2);
+  /* #fce4ec */
 }
 
 /* เพิ่มคลาสสำหรับสถานะเลือก */
@@ -191,6 +197,7 @@ p {
 .piece-icon.role-rock {
   background-color: #d32f2f;
 }
+
 .piece-icon.role-rock::before {
   content: "🪨";
 }
@@ -198,6 +205,7 @@ p {
 .piece-icon.role-paper {
   background-color: var(--primary-color);
 }
+
 .piece-icon.role-paper::before {
   content: "📄";
 }
@@ -205,6 +213,7 @@ p {
 .piece-icon.role-scissors {
   background-color: #fbc02d;
 }
+
 .piece-icon.role-scissors::before {
   content: "✂️";
 }
@@ -237,6 +246,7 @@ p {
   border: 2px solid var(--success-hover);
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
+
 .piece-icon.unknown {
   background: linear-gradient(135deg, #666, #333);
   color: #fff;

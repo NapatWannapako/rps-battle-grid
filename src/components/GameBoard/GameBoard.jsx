@@ -1,45 +1,60 @@
 import React, { useState, useEffect } from "react";
-import { useGame,initialPieces  } from "../../pages/Game/GameContext";
+import { useGame, initialPieces } from "../../pages/Game/GameContext";
 import { resolveBattle } from "../../features/game/gameLogic";
 import "./GameBoard.css";
 import { PLAYER_SELF, PLAYER_OPPONENT } from "../../models/gameModel";
 
 export default function GameBoard() {
-const {
-  pieces,
-  setPieces,
-  BOARD_SIZE,
-  currentPlayer,
-  setCurrentPlayer,
-  selectedPiece,
-  setSelectedPiece,
-  phase,
-  setPhase,
-  setupPlayerTurn,
-  setSetupPlayerTurn,
-} = useGame();
-const isPieceVisible = (piece) => {
-  if (piece.owner === currentPlayer) return true;
-  if (piece.isRevealed) return true; // ถ้ามีสถานะเปิดเผย
-  return false;
-};
-
-
-const resetGame = () => {
-  setPieces(initialPieces);
-  setSelectedPiece(null);
-  setCurrentPlayer(PLAYER_SELF);
-  setPhase('setup');
-  setSetupPlayerTurn(PLAYER_SELF);
-  setWinner(null);
-};
+  const {
+    pieces,
+    setPieces,
+    BOARD_SIZE,
+    currentPlayer,
+    setCurrentPlayer,
+    selectedPiece,
+    setSelectedPiece,
+    phase,
+    setPhase,
+    setupPlayerTurn,
+    setSetupPlayerTurn,
+  } = useGame();
 
   const [winner, setWinner] = React.useState(null);
 
-  // เก็บช่อง valid moves ที่ piece ที่เลือกเดินไปได้
+  // Popup “เริ่มเดินหมาก” ให้ฝั่งถัดไปกดยืนยันก่อนเริ่ม
+  const [showTurnGate, setShowTurnGate] = useState(false);
+  const [gatePlayer, setGatePlayer] = useState(null); // 'self' | 'opponent'
+
+  // Popup ผลการต่อสู้
+  const [battleResult, setBattleResult] = useState(null); // 'win' | 'lose' | 'draw' | null
+
+  // เก็บช่อง valid moves ของตัวที่เลือก
   const [validMoves, setValidMoves] = useState([]);
 
-  // ฟังก์ชันช่วยเช็คว่ามีหมากขวางไหมในแนวตรง
+  const resetGame = () => {
+    setPieces(initialPieces);
+    setSelectedPiece(null);
+    setCurrentPlayer(PLAYER_SELF);
+    setPhase("setup");
+    setSetupPlayerTurn(PLAYER_SELF);
+    setWinner(null);
+    setShowTurnGate(false);
+    setGatePlayer(null);
+    setBattleResult(null);
+  };
+
+  // ซ่อนชิ้นหมากถ้า:
+  // - ไม่ใช่ของผู้เล่นปัจจุบัน
+  // - หรือชิ้นนั้นยังไม่ถูกเผย isRevealed
+  // - หรือกำลังแสดง popup (ป้องกันเห็นตัวหมากก่อนส่งตา)
+  const isPieceVisible = (piece) => {
+    if (showTurnGate || battleResult) return false; // ซ่อนทั้งหมดระหว่าง popup
+    if (piece.owner === currentPlayer) return true;
+    if (piece.isRevealed) return true;
+    return false;
+  };
+
+  // ตัวช่วยเช็คทางแนวตรง (ปัจจุบันยังไม่ได้ใช้ใน logic เดินเฉพาะบางตัว)
   function isPathClearHorizontal(y, x1, x2) {
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
@@ -59,7 +74,7 @@ const resetGame = () => {
     return true;
   }
 
-  // ฟังก์ชันหา valid moves ของ selectedPiece
+  // หา valid moves ตาม role
   const getValidMoves = (piece) => {
     if (!piece) return [];
     const moves = [];
@@ -69,23 +84,19 @@ const resetGame = () => {
       [-1, 0],
       [0, 1],
       [0, -1],
-    ]; // 4 ทิศ
+    ];
 
     if (role === "paper") {
-      // เดินแบบเรือ (เดินตรงตามแถวหรือคอลัมน์หลายช่อง)
-      // ลองเดินไปในแต่ละทิศทางจนเจอหมากหรือขอบบอร์ด
       for (const [dx, dy] of directions) {
         let nx = position.x + dx;
         let ny = position.y + dy;
         while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-          // ถ้ามีหมากขวาง, หยุด
           if (pieces.some((p) => p.position.x === nx && p.position.y === ny))
             break;
           moves.push({ x: nx, y: ny });
           nx += dx;
           ny += dy;
         }
-        // ถ้ามีหมากตรงปลายทางที่เป็นคู่ต่อสู้ ก็เดินไปโจมตีได้
         const lastX = nx;
         const lastY = ny;
         const target = pieces.find(
@@ -96,7 +107,6 @@ const resetGame = () => {
         }
       }
     } else if (role === "scissors") {
-      // เดินแบบม้า (knight move)
       const knightMoves = [
         [2, 1],
         [2, -1],
@@ -119,65 +129,80 @@ const resetGame = () => {
           }
         }
       }
-  } else if (role === "rock") {
-  // เดินได้ 4 ทิศทางละ 1 ช่อง
-  const directions = [
-    [1, 0],   // ขวา
-    [-1, 0],  // ซ้าย
-    [0, 1],   // ลง
-    [0, -1],  // ขึ้น
-  ];
-
-  for (const [dx, dy] of directions) {
-    const nx = position.x + dx;
-    const ny = position.y + dy;
-
-    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-      const target = pieces.find(
-        (p) => p.position.x === nx && p.position.y === ny
-      );
-      if (!target || target.owner !== owner) {
-        moves.push({ x: nx, y: ny });
+    } else if (role === "rock") {
+      const directions = [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ];
+      for (const [dx, dy] of directions) {
+        const nx = position.x + dx;
+        const ny = position.y + dy;
+        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+          const target = pieces.find(
+            (p) => p.position.x === nx && p.position.y === ny
+          );
+          if (!target || target.owner !== owner) {
+            moves.push({ x: nx, y: ny });
+          }
+        }
       }
     }
-  }
-}
-
 
     return moves;
   };
 
-  // อัพเดต validMoves ทุกครั้งที่ selectedPiece หรือ pieces เปลี่ยน
   useEffect(() => {
     setValidMoves(getValidMoves(selectedPiece));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPiece, pieces]);
 
   const onSelectPiece = (piece) => {
+    if (showTurnGate || battleResult) return; // ห้ามทำอะไรระหว่าง popup
     if (piece.owner !== currentPlayer) return;
     setSelectedPiece(piece);
   };
-  const checkWinner = (pieces) => {
-    const selfPieces = pieces.filter((p) => p.owner === "self");
-    const opponentPieces = pieces.filter((p) => p.owner === "opponent");
+
+  const checkWinner = (ps) => {
+    const selfPieces = ps.filter((p) => p.owner === "self");
+    const opponentPieces = ps.filter((p) => p.owner === "opponent");
 
     if (selfPieces.length === 0 && opponentPieces.length === 0) {
-      return "draw"; // เสมอ
+      return "draw";
     } else if (selfPieces.length === 0) {
-      return "opponent"; // ฝ่ายตรงข้ามชนะ
+      return "opponent";
     } else if (opponentPieces.length === 0) {
-      return "self"; // ผู้เล่นชนะ
+      return "self";
     }
-    return null; // ยังไม่มีใครชนะ
+
+    // 🔥 กรณีพิเศษ: เหลือกันคนละ 1 ตัว → ตัดสินทันที
+    if (selfPieces.length === 1 && opponentPieces.length === 1) {
+      const selfRole = selfPieces[0].role;
+      const oppRole = opponentPieces[0].role;
+      if (selfRole === oppRole) return "draw";
+      if (
+        (selfRole === "rock" && oppRole === "scissors") ||
+        (selfRole === "scissors" && oppRole === "paper") ||
+        (selfRole === "paper" && oppRole === "rock")
+      ) {
+        return "self";
+      } else {
+        return "opponent";
+      }
+    }
+
+    return null;
   };
 
+
   const onMove = (x, y) => {
+    if (showTurnGate || battleResult) return; // ระหว่าง popup ห้ามเดิน
     if (!selectedPiece) return;
 
     const { position, role, owner } = selectedPiece;
-    const dx = x - position.x;
-    const dy = y - position.y;
 
-    // เช็คว่า (x,y) อยู่ใน validMoves
+    // ต้องอยู่ใน validMoves
     if (!validMoves.some((m) => m.x === x && m.y === y)) return;
 
     const target = pieces.find((p) => p.position.x === x && p.position.y === y);
@@ -186,20 +211,25 @@ const resetGame = () => {
     if (target && target.owner === owner) return;
 
     let newPieces = pieces.filter((p) => p.id !== selectedPiece.id);
+    let thisBattleResult = null; // 'win' | 'lose' | 'draw' | null
+
     if (target && target.owner !== owner) {
-      const winner = resolveBattle(role, target.role);
-      if (winner === "attacker") {
+      const rb = resolveBattle(role, target.role);
+      if (rb === "attacker") {
         newPieces = newPieces.filter((p) => p.id !== target.id);
         newPieces.push({
           ...selectedPiece,
           position: { x, y },
           isRevealed: true,
         });
-      } else if (winner === "defender") {
-        // attacker หายไป ไม่ต้องเพิ่ม
+        thisBattleResult = "win";
+      } else if (rb === "defender") {
+        // attacker หายไป
+        thisBattleResult = "lose";
       } else {
         // draw: ลบทั้งคู่
         newPieces = newPieces.filter((p) => p.id !== target.id);
+        thisBattleResult = "draw";
       }
     } else {
       newPieces.push({ ...selectedPiece, position: { x, y } });
@@ -207,36 +237,45 @@ const resetGame = () => {
 
     setPieces(newPieces);
     setSelectedPiece(null);
+
     const gameWinner = checkWinner(newPieces);
     if (gameWinner) {
       setWinner(gameWinner);
-    } else {
-      setCurrentPlayer(currentPlayer === "self" ? "opponent" : "self");
+      return;
     }
 
-    // setSelectedPiece(null);
-    // setCurrentPlayer(currentPlayer === 'self' ? 'opponent' : 'self');
+    const nextPlayer = currentPlayer === "self" ? "opponent" : "self";
+
+    // ถ้ามีการต่อสู้ ให้แสดงผลการต่อสู้ก่อน
+    if (thisBattleResult) {
+      setBattleResult(thisBattleResult);
+      // หลังจากผู้ใช้กดตกลงในผลการต่อสู้ ค่อยเปิด gate ของเทิร์นถัดไป
+      // (ดูในปุ่มของ popup ด้านล่าง)
+    } else {
+      // ไม่มีการต่อสู้ เปิด popup gate ให้ฝั่งถัดไปกดยืนยันเริ่ม
+      setGatePlayer(nextPlayer);
+      setShowTurnGate(true);
+    }
   };
 
-  // ฟังก์ชันสร้างไอคอน piece
- const renderPieceIcon = (piece) => {
-  if (!isPieceVisible(piece)) {
-    return <div className="piece-icon unknown">?</div>;
-  }
-  
-  return (
-    <div className={`piece-icon role-${piece.role} owner-${piece.owner}`}>
-      {/* ... icon หรือรูป */}
-    </div>
-  );
-};
+  const renderPieceIcon = (piece) => {
+    if (!isPieceVisible(piece)) {
+      return <div className="piece-icon unknown">?</div>;
+    }
 
+    return (
+      <div className={`piece-icon role-${piece.role} owner-${piece.owner}`}>
+        {/* icon ถูกวาดด้วย CSS */}
+      </div>
+    );
+  };
 
   return (
     <div className="gameboard-container">
       <p className="current-player">
-        ผู้เล่น: {currentPlayer === "self" ? "คุณ" : "ฝ่ายตรงข้าม"}
+        ผู้เล่น: {currentPlayer === "self" ? "Player 1" : "Player 2"}
       </p>
+
       <div
         className="board-grid"
         style={{
@@ -262,13 +301,12 @@ const resetGame = () => {
               <div
                 key={`${x}-${y}`}
                 className={`board-cell
-                  ${piece && renderPieceIcon(piece)}
-                  
                   ${isSelected ? "selected" : ""}
                   ${canMoveHere ? "can-move" : ""}
                   ${isPointer ? "pointer" : ""}
                 `}
                 onClick={() => {
+                  if (showTurnGate || battleResult) return; // ระหว่าง popup ห้ามคลิก
                   if (piece && piece.owner === currentPlayer) {
                     onSelectPiece(piece);
                   } else {
@@ -282,21 +320,71 @@ const resetGame = () => {
           })
         )}
       </div>
-      {winner && (
-  <div className="game-winner-dialog">
-    <div className="dialog-content">
-      <h2>
-        {winner === "draw"
-          ? "เกมเสมอ!"
-          : winner === "self"
-          ? "คุณชนะ!"
-          : "ฝ่ายตรงข้ามชนะ!"}
-      </h2>
-      <button onClick={resetGame}>เริ่มเกมใหม่</button>
-    </div>
-  </div>
-)}
 
+      {/* Winner dialog เดิม */}
+      {winner && (
+        <div className="game-winner-dialog">
+          <div className="dialog-content">
+            <h2>
+              {winner === "draw"
+                ? "เกมเสมอ!"
+                : winner === "self"
+                  ? "คุณชนะ!"
+                  : "ฝ่ายตรงข้ามชนะ!"}
+            </h2>
+            <button onClick={resetGame}>เริ่มเกมใหม่</button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup ผลการต่อสู้ (จากมุมมองผู้เล่นที่เพิ่งเดิน) */}
+      {battleResult && (
+        <div className="game-winner-dialog">
+          <div className="dialog-content">
+            <h2>
+              {battleResult === "win"
+                ? "คุณชนะการต่อสู้!"
+                : battleResult === "lose"
+                  ? "คุณแพ้การต่อสู้!"
+                  : "การต่อสู้เสมอ"}
+            </h2>
+            <button
+              onClick={() => {
+                // ปิดผลการต่อสู้ แล้วเปิด gate ให้ฝั่งถัดไป
+                setBattleResult(null);
+                const nextPlayer =
+                  currentPlayer === "self" ? "opponent" : "self";
+                setGatePlayer(nextPlayer);
+                setShowTurnGate(true);
+              }}
+            >
+              ตกลง
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup เริ่มเดินหมากของฝั่งถัดไป */}
+      {showTurnGate && (
+        <div className="game-winner-dialog">
+          <div className="dialog-content">
+            <h2>เริ่มเดินหมาก</h2>
+            <p>
+              ถึงคิว{" "}
+              {gatePlayer === "self" ? "Player 1" : "Player 2"}
+            </p>
+            <button
+              onClick={() => {
+                setCurrentPlayer(gatePlayer);
+                setShowTurnGate(false);
+                setGatePlayer(null);
+              }}
+            >
+              เริ่มเทิร์น
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
