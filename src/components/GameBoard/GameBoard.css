@@ -101,6 +101,22 @@
   content: "🪨";
 }
 
+.player-label {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 10px 0;
+  color: #222;
+  text-align: center;
+}
+
+.top-label {
+  margin-bottom: 10px;
+}
+
+.bottom-label {
+  margin-top: 10px;
+}
+
 
 /* Paper styles */
 .piece-icon.role-paper {

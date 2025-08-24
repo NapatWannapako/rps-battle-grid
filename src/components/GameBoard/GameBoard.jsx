@@ -273,8 +273,11 @@ export default function GameBoard() {
   return (
     <div className="gameboard-container">
       <p className="current-player">
-        ผู้เล่น: {currentPlayer === "self" ? "Player 1" : "Player 2"}
+        ผู้เล่นที่กำลังเดิน: {currentPlayer === "self" ? "Player 1" : "Player 2"}
       </p>
+
+      {/* ป้าย Player 2 ด้านบน */}
+      <div className="player-label top-label">Player 2</div>
 
       <div
         className="board-grid"
@@ -301,12 +304,12 @@ export default function GameBoard() {
               <div
                 key={`${x}-${y}`}
                 className={`board-cell
-                  ${isSelected ? "selected" : ""}
-                  ${canMoveHere ? "can-move" : ""}
-                  ${isPointer ? "pointer" : ""}
-                `}
+                ${isSelected ? "selected" : ""}
+                ${canMoveHere ? "can-move" : ""}
+                ${isPointer ? "pointer" : ""}
+              `}
                 onClick={() => {
-                  if (showTurnGate || battleResult) return; // ระหว่าง popup ห้ามคลิก
+                  if (showTurnGate || battleResult) return;
                   if (piece && piece.owner === currentPlayer) {
                     onSelectPiece(piece);
                   } else {
@@ -321,7 +324,10 @@ export default function GameBoard() {
         )}
       </div>
 
-      {/* Winner dialog เดิม */}
+      {/* ป้าย Player 1 ด้านล่าง */}
+      <div className="player-label bottom-label">Player 1</div>
+
+      {/* Winner / Popup อื่น ๆ ด้านล่างเหมือนเดิม */}
       {winner && (
         <div className="game-winner-dialog">
           <div className="dialog-content">
@@ -337,7 +343,6 @@ export default function GameBoard() {
         </div>
       )}
 
-      {/* Popup ผลการต่อสู้ (จากมุมมองผู้เล่นที่เพิ่งเดิน) */}
       {battleResult && (
         <div className="game-winner-dialog">
           <div className="dialog-content">
@@ -350,7 +355,6 @@ export default function GameBoard() {
             </h2>
             <button
               onClick={() => {
-                // ปิดผลการต่อสู้ แล้วเปิด gate ให้ฝั่งถัดไป
                 setBattleResult(null);
                 const nextPlayer =
                   currentPlayer === "self" ? "opponent" : "self";
@@ -364,15 +368,11 @@ export default function GameBoard() {
         </div>
       )}
 
-      {/* Popup เริ่มเดินหมากของฝั่งถัดไป */}
       {showTurnGate && (
         <div className="game-winner-dialog">
           <div className="dialog-content">
             <h2>เริ่มเดินหมาก</h2>
-            <p>
-              ถึงคิว{" "}
-              {gatePlayer === "self" ? "Player 1" : "Player 2"}
-            </p>
+            <p>ถึงคิว {gatePlayer === "self" ? "Player 1" : "Player 2"}</p>
             <button
               onClick={() => {
                 setCurrentPlayer(gatePlayer);
@@ -387,4 +387,5 @@ export default function GameBoard() {
       )}
     </div>
   );
+
 }

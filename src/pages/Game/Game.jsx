@@ -13,7 +13,7 @@ export default function Game() {
   return (
     <GameProvider>
       <div className="game-container">
-        <h1 className="game-title">เกมหมากเป่ายิ้งฉุบ 6x6</h1>
+        <h1 className="game-title">Roshambo Chess</h1>
         <GameInner />
       </div>
     </GameProvider>
